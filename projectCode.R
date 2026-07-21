@@ -31,6 +31,44 @@ df <- df %>%
     )
   )
 
+##side by side boxplot
+ggplot(df, aes(x=Default,y=dti_n))+
+  geom_boxplot(fill="lightblue")+
+  labs(
+    x="Loan Default Status",
+    y="Debt-to-Income Ratio",
+    title="DTI Distribution by Default Status"
+  )
+
+ggplot(df, aes(x=Default,y=logdti))+
+  geom_boxplot(fill="lightblue")+
+  labs(
+    x="Loan Default Status",
+    y="logDTI",
+    title="logDTI Distribution by Default Status"
+  )
+
+library(dplyr)
+
+summary_table <- df %>%
+  group_by(Default) %>%   # or whatever your group variable is called
+  summarise(
+    N = n(),
+    Mean = mean(dti_n, na.rm = TRUE),
+    Median = median(dti_n, na.rm = TRUE),
+    SD = sd(dti_n, na.rm = TRUE)
+  )
+summary_table
+
+logsummary_table <- df %>%
+  group_by(Default) %>%   # or whatever your group variable is called
+  summarise(
+    N = n(),
+    Mean = mean(logdti, na.rm = TRUE),
+    Median = median(logdti, na.rm = TRUE),
+    SD = sd(logdti, na.rm = TRUE)
+  )
+logsummary_table
 
 # QUESTION 1 T-TEST MEAN DTI FOR DEFAULT VS NON DEFAULT
 
@@ -54,7 +92,12 @@ qqnorm(resid(dti.lm))
 qqline(resid(dti.lm)) #see very large deviations from qqplot
   #ggplot version
 p2<-ggplot(df, aes(sample=resid(dti.lm)))+stat_qq()
-p2+stat_qq_line(linetype="dashed",color="blue")
+p2+stat_qq_line(linetype="dashed",color="blue")+
+  labs(
+    x="Theoretical Quantiles",
+    y="Sample Quantiles",
+    title="Normal Q-Q Plot of Residuals for DTI"
+  )
 
 #applying log transform
 df$logdti=log1p(df$dti_n)
@@ -64,10 +107,21 @@ lp1<-ggplot(data=df,
            mapping=aes(
              x=predict(loglm),
              y=resid(loglm)))
-lp1+geom_point()+geom_hline(yintercept=0,linetype="dashed",color="purple") #var look much better
-
+lp1+geom_point()+geom_hline(yintercept=0,linetype="dashed",color="purple")+ #var look much better
+  labs(
+    x="Fitted Value",
+    y="Residual",
+    title="Residuals vs Fitted Values"
+  )
+  
+  
 lp2<-ggplot(df,aes(sample=resid(loglm)))+stat_qq()
-lp2+stat_qq_line(linetype="dashed",color="black")
+lp2+stat_qq_line(linetype="dashed",color="black")+
+  labs(
+    x="Theoretical Quantiles",
+    y="Sample Quantiles",
+    title="Normal Q-Q Plot of Residuals for logDTI"
+  )
 
 #t test
 df.test<-t.test(logdti~Default,data=df)
@@ -89,10 +143,10 @@ exp(df.test$conf.int)
 # QUESTION 2 CHI-SQUARE IS THERE A DIFFERENCE BETWEEN DTI GROUP MEANS (LOW,MED,HIGH)
 #frequency table
 df.ft<-table(df$dti_level,df$Default)
-
+df.ft
 #mosaic plot
 ggplot(data=df)+
-  geom_moasic(aes(x=product(Default),
+  geom_mosaic(aes(x=product(Default),
                   fill=dti_level),na.rm=TRUE)+
   theme_bw()+
   theme(plot.title=element_text(hjust=0.5,
@@ -113,6 +167,11 @@ chi.test$expected
 (chi.test$residuals)^2
 
 # QUESTION 3 LOGISTIC REGRESSION
+
+#linearity assumption
+
+
+
 default.m1<-glm(Default~logdti,family=binomial,data=df)
 default.m1
 
