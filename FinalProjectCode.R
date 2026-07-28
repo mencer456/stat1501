@@ -1,16 +1,15 @@
-#reading in the data
+#Loading necessary libraries
 library(ggplot2)
 library(dplyr)
 library(stringr)
 library(ggmosaic)
 
 
-
+#Reading in the data
 lending=read.csv("lending.csv", header=TRUE)
-only18=lending[grepl("18",lending$issue_d),] #keep only records from 2018
+only18=lending[grepl("18",lending$issue_d),]  #keep only records from 2018
 df=only18  %>% select(dti_n, Default)         #keep only dti_n and default columns
 rownames(df)=NULL
-
 head(df)
 
 #removing erroneous values
@@ -22,13 +21,13 @@ df$Default=factor(df$Default, levels=c(0,1),
                   labels=c("No Default","Default"))
 
 #adding classification levels for testing group means
-  mutate(
-    dti_level=case_when(
-      dti_n<36 ~ "Low",
-      dti_n>=36 & dti_n<45 ~ "Medium",
-      dti_n>45 ~ "High"
-    )
+mutate(
+  dti_level=case_when(
+    dti_n<36 ~ "Low",
+    dti_n>=36 & dti_n<45 ~ "Medium",
+    dti_n>45 ~ "High"
   )
+)
 
 ##side by side boxplot
 ggplot(df, aes(x=Default,y=dti_n))+
@@ -47,7 +46,6 @@ ggplot(df, aes(x=Default,y=logdti))+
     title="logDTI Distribution by Default Status"
   )
 
-library(dplyr)
 
 summary_table <- df %>%
   group_by(Default) %>%   # or whatever your group variable is called
@@ -79,7 +77,7 @@ dti.lm<-lm(dti_n~Default,data=df)
 plot(predict(dti.lm),resid(dti.lm))
 abline(h=0,lty=3)
 
-  #alternate graph
+#alternate graph
 p1 <- ggplot(data = df,
              mapping = aes(
                x = predict(dti.lm),
@@ -90,7 +88,7 @@ p1 + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red
 #normality
 qqnorm(resid(dti.lm))
 qqline(resid(dti.lm)) #see very large deviations from qqplot
-  #ggplot version
+#ggplot version
 p2<-ggplot(df, aes(sample=resid(dti.lm)))+stat_qq()
 p2+stat_qq_line(linetype="dashed",color="blue")+
   labs(
@@ -104,17 +102,17 @@ df$logdti=log1p(df$dti_n)
 
 loglm<-lm(logdti~Default,data=df)
 lp1<-ggplot(data=df,
-           mapping=aes(
-             x=predict(loglm),
-             y=resid(loglm)))
+            mapping=aes(
+              x=predict(loglm),
+              y=resid(loglm)))
 lp1+geom_point()+geom_hline(yintercept=0,linetype="dashed",color="purple")+ #var look much better
   labs(
     x="Fitted Value",
     y="Residual",
     title="Residuals vs Fitted Values"
   )
-  
-  
+
+
 lp2<-ggplot(df,aes(sample=resid(loglm)))+stat_qq()
 lp2+stat_qq_line(linetype="dashed",color="black")+
   labs(
