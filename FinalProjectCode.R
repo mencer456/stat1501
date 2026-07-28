@@ -14,7 +14,7 @@ head(df)
 df$dti_n[df$dti_n>998]=NA
 df=df%>%filter(!is.na(dti_n))
 
-#categorizing default
+#categorizing default status
 df$Default=factor(df$Default, levels=c(0,1),
                   labels=c("No Default","Default"))
 
